@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  wetrekking-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    volumes:
+      - ./src:/wetrekking-prod/src
+    ports:
+      - 3000:3000
+    env_file:
+      - ./.env.prod
