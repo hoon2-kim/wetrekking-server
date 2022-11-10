@@ -2,8 +2,8 @@ FROM node:16
 
 WORKDIR /myfolder/
 COPY ./package.json /myfolder/
-
-RUN yarn install --production
+COPY ./yarn.lock /myfolder
+RUN yarn install
 
 COPY . /myfolder/
 RUN yarn build
