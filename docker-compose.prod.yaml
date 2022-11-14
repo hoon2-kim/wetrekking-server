@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   wetrekking-prod:
+    image: asia.gcr.io/wetrekking-367408/team-wetrekking-prod:1.0
     build:
       context: .
       dockerfile: Dockerfile.prod
