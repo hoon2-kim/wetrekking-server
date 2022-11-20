@@ -7,11 +7,13 @@ import { CrewUserList } from './entities/crewUserList.entity';
 
 @Injectable()
 export class CrewUserListService {
-  @InjectRepository(CrewUserList)
-  private readonly crewUserListRepository: Repository<CrewUserList>;
+  constructor(
+    @InjectRepository(CrewUserList)
+    private readonly crewUserListRepository: Repository<CrewUserList>,
 
-  @InjectRepository(CrewBoard)
-  private readonly crewBoardRepository: Repository<CrewBoard>; //
+    @InjectRepository(CrewBoard)
+    private readonly crewBoardRepository: Repository<CrewBoard>,
+  ) {}
 
   async findAll({ userId }) {
     const result = [];
@@ -143,6 +145,13 @@ export class CrewUserListService {
   async update({ status, id }) {
     const crewUserList = await this.findOne({ id: id });
     const { ...crewUserListId } = crewUserList;
+
+    // if (crewUserList.status === '거절') {
+    //   await this.pointHistoryRepository.save({
+    //     amount: -200,
+    //     ...crewUserListId,
+    //   });
+    // }
 
     return this.crewUserListRepository.save({
       ...crewUserListId,
