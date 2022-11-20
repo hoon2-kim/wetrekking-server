@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { GqlAuthAccessGuard } from 'src/commons/auth/gql-auth.guard';
 import { IContext } from 'src/commons/type/context';
 import { Repository } from 'typeorm';
+import { resourceLimits } from 'worker_threads';
 import { CrewBoard } from '../crewBoards/entities/crewBoard.entity';
 import { EmailService } from '../email/email.service';
 import { User } from '../users/entities/user.entity';
@@ -66,7 +67,12 @@ export class CrewUserListResolver {
     const result = await this.crewUserListService.findAcceptedList({
       crewBoardId,
     });
-
+    result.unshift(
+      result.splice(
+        result.findIndex((x) => x.crewBoard.user.id === x.user.id),
+        1,
+      )[0],
+    );
     return result;
   }
 
