@@ -66,7 +66,12 @@ export class CrewUserListResolver {
     const result = await this.crewUserListService.findAcceptedList({
       crewBoardId,
     });
-
+    result.unshift(
+      result.splice(
+        result.findIndex((x) => x.crewBoard.user.id === x.user.id),
+        1,
+      )[0],
+    );
     return result;
   }
 
