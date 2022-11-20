@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { IContext } from 'src/commons/type/context';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ReviewCount } from '../reviewCount/reviewCount.entity';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -20,6 +21,8 @@ export class UserResolver {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>, //
+    @InjectRepository(ReviewCount)
+    private readonly reviewCountRepository: Repository<ReviewCount>, //
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -162,6 +165,15 @@ export class UserResolver {
       email,
       updateUserInput,
     });
+  }
+
+  @Query(() => ReviewCount)
+  async fetchMountainKing() {
+    const count = await this.reviewCountRepository.find({
+      relations: ['user'],
+    });
+    count.sort((a, b) => b.reviewCount - a.reviewCount);
+    return count.slice(0, 3);
   }
 
   // 회원가입
