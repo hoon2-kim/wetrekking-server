@@ -90,7 +90,7 @@ type ReviewBoard {
 
 type ReviewBoardImage {
   id: String!
-  url: String!
+  imgUrl: String!
   isMain: Boolean!
   reviewBoard: ReviewBoard!
 }

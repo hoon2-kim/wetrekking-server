@@ -49,6 +49,7 @@ export class ReviewBoardResolver {
       crewUserListId,
       createReviewBoardInput,
     });
+
     if (imgUrl) {
       const reviewBoardId = result.id;
       await this.reviewBoardImageService.upload({ imgUrl, reviewBoardId });
