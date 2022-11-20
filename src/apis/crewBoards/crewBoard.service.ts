@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CrewBoardImage } from '../crewBoardImages/entities/crewBoardImage.entity';
 import { CrewUserList } from '../crewUserList/entities/crewUserList.entity';
 import { Dib } from '../dib/entities/dib.entity';
+import { PointHistory } from '../pointHistory/entities/pointHistory.entity';
 import { User } from '../users/entities/user.entity';
 import { CrewBoard } from './entities/crewBoard.entity';
 
@@ -25,6 +26,9 @@ export class CrewBoardService {
 
     @InjectRepository(Dib)
     private readonly dibRepository: Repository<Dib>,
+
+    @InjectRepository(PointHistory)
+    private readonly pointHistoryRepository: Repository<PointHistory>,
 
     private readonly elasticsearchService: ElasticsearchService,
   ) {}
@@ -286,6 +290,11 @@ export class CrewBoardService {
       user: userId,
       crewBoard: crewBoardId,
       status: '수락',
+    });
+
+    await this.pointHistoryRepository.save({
+      user: userId,
+      amount: -500,
     });
 
     return result;

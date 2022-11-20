@@ -6,6 +6,7 @@ import { IContext } from 'src/commons/type/context';
 import { Repository } from 'typeorm';
 import { CrewBoard } from '../crewBoards/entities/crewBoard.entity';
 import { EmailService } from '../email/email.service';
+import { PointHistory } from '../pointHistory/entities/pointHistory.entity';
 import { User } from '../users/entities/user.entity';
 import { CrewUserListService } from './crewUserList.service';
 import { CrewUserList } from './entities/crewUserList.entity';
@@ -21,6 +22,9 @@ export class CrewUserListResolver {
 
     @InjectRepository(CrewBoard)
     private readonly crewBoardRepository: Repository<CrewBoard>,
+
+    @InjectRepository(PointHistory)
+    private readonly pointHistoryRepository: Repository<PointHistory>,
   ) {}
 
   // 크루 신청 리스트 조회
@@ -122,6 +126,12 @@ export class CrewUserListResolver {
       { point: user.point - 200 },
       // { point: user.point }, // 개발중으로 아직 포인트 안뻇어감
     );
+
+    await this.pointHistoryRepository.save({
+      amount: -200,
+      user: { id: userId },
+    });
+
     const crewBoard = await this.crewBoardRepository.findOne({
       where: { id: crewBoardId },
       relations: ['user'],
@@ -202,6 +212,11 @@ export class CrewUserListResolver {
     const email = crewUserId.user.email;
     const nickname = crewUserId.user.nickname;
     const crewBoardTitle = crewUserId.crewBoard.title;
+
+    await this.pointHistoryRepository.save({
+      amount: 200,
+      user: { id: crewUserId.user.id },
+    });
 
     const result = await this.emailService.getRejectTemplate({
       nickname,

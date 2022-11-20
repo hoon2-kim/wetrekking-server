@@ -26,9 +26,11 @@ import { LikeModule } from './apis/likes/like.module';
 import { AppController } from './app.controller';
 import { ReviewBoardImageModule } from './apis/reviewBoardImages/reviewBoardImage.module';
 import { TrekkingModule } from './apis/trekking/trekking.module';
+import { PointHistoryModule } from './apis/pointHistory/pointHistory.module';
 
 @Module({
   imports: [
+    PointHistoryModule,
     TrekkingModule,
     ReviewBoardImageModule,
     LikeModule,

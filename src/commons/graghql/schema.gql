@@ -57,6 +57,13 @@ type CrewUserList {
   crewBoard: CrewBoard!
 }
 
+type PointHistory {
+  id: String!
+  amount: Int!
+  createdAt: DateTime!
+  user: User!
+}
+
 type CrewBoardAndUser {
   id: String!
   title: String!
@@ -75,6 +82,12 @@ type CrewBoardAndUser {
   assignedUsers: [User!]!
   createdAt: DateTime!
   updatedAt: DateTime
+}
+
+type ReviewCount {
+  id: String!
+  reviewCount: Int!
+  user: User!
 }
 
 type ReviewBoard {
@@ -161,6 +174,8 @@ type TrekkingInfo {
 }
 
 type Query {
+  """로그인한 유저의 이용내역 전체 조회"""
+  fetchPointHistory(page: Int): [PointHistory!]!
   fetchTrekkingInfo(address: String!, mountainName: String!): Trekking!
 
   """산이름을 통해 좌표 반환"""
@@ -191,6 +206,7 @@ type Query {
   fetchReviewBoard(reviewBoardId: String!): ReviewBoard!
   fetchReviewBoards: [[ReviewBoard!]!]!
   fetchUser: User!
+  fetchMountainKing: ReviewCount!
 
   """boardId에 해당하는 댓글 전체 조회"""
   fetchCrewComments(boardId: String!, page: Int): [CrewComment!]!
