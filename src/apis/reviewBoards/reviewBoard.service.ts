@@ -70,11 +70,19 @@ export class ReviewBoardService {
 
     const count = await this.reviewCountRepository.findOne({
       where: { user: { id: userId } },
+      relations: ['user'],
     });
-    this.reviewCountRepository.update(
-      { id: count.id },
-      { reviewCount: count.reviewCount + 1 },
-    );
+
+    if (!count) {
+      this.reviewCountRepository.save({
+        user: { id: userId },
+      });
+    } else {
+      this.reviewCountRepository.update(
+        { id: count.id },
+        { reviewCount: count.reviewCount + 1 },
+      );
+    }
 
     return result;
   }

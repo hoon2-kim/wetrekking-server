@@ -11,7 +11,7 @@ export class ReviewBoardImage {
 
   @Column()
   @Field(() => String)
-  url: string;
+  imgUrl: string;
 
   @Column()
   @Field(() => Boolean)

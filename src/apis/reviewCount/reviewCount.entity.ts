@@ -15,7 +15,7 @@ export class ReviewCount {
   @Field(() => String)
   id: string;
 
-  @Column()
+  @Column({ default: 1 })
   @Field(() => Int)
   reviewCount: number;
 
