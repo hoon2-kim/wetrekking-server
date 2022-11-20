@@ -14,7 +14,6 @@ import { Repository } from 'typeorm';
 import { ReviewCount } from '../reviewCount/reviewCount.entity';
 import { EmailService } from '../email/email.service';
 
-
 @Resolver(() => User)
 export class UserResolver {
   constructor(
