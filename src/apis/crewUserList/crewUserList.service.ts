@@ -118,6 +118,7 @@ export class CrewUserListService {
   findOne(type) {
     return this.crewUserListRepository.findOne({
       where: type,
+      relations: ['user', 'crewBoard'],
     });
   }
 
@@ -127,7 +128,7 @@ export class CrewUserListService {
         crewBoard: { id: crewBoardId }, //
         user: { id: userId },
       },
-      relations: ['user', 'crewBoard'],
+      relations: ['user', 'crewBoard', 'crewBoard.user'],
     });
   }
 

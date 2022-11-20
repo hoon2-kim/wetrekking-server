@@ -12,12 +12,15 @@ import { IContext } from 'src/commons/type/context';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReviewCount } from '../reviewCount/reviewCount.entity';
+import { EmailService } from '../email/email.service';
+
 
 @Resolver(() => User)
 export class UserResolver {
   constructor(
     private readonly userService: UserService, //
     private readonly phoneService: PhoneService,
+    private readonly emailService: EmailService,
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>, //
@@ -85,10 +88,20 @@ export class UserResolver {
     // 랜덤 비밀번호 생성
     const randomPassword = Math.random()
       .toString(36)
-      .substring(2, 10)
+      .substring(2, 8)
       .padStart(8, 'a1');
-    await bcrypt.hash(randomPassword, 10);
+    const hashPassword = await bcrypt.hash(randomPassword, 10);
 
+    this.userRepository.update({ email: email }, { password: hashPassword });
+
+    const result = await this.emailService.getPasswordTemplate({
+      name,
+      randomPassword,
+    });
+    console.log(result);
+
+    const comment = '임시 비밀번호가 발급되었습니다.';
+    this.emailService.sendTemplateToEmail({ email, result, comment });
     return randomPassword;
   }
 
@@ -186,9 +199,20 @@ export class UserResolver {
       throw new Error('휴대폰 인증이 올바르지 않습니다.');
     }
 
-    return this.userService.create({
+    const user = await this.userService.create({
       createUserInput,
     });
+    const name = user.name;
+    const phone = user.phone;
+    const email = user.email;
+
+    const result = await this.emailService.getWelcomeTemplate({
+      name,
+      phone,
+    });
+    const comment = '가입을 축하합니다!!';
+    this.emailService.sendTemplateToEmail({ email, result, comment });
+    return user;
   }
   // 유저 업데이트
   @UseGuards(GqlAuthAccessGuard)

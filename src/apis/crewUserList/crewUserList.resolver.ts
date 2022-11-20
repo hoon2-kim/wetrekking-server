@@ -1,8 +1,12 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { InjectRepository } from '@nestjs/typeorm';
 import { GqlAuthAccessGuard } from 'src/commons/auth/gql-auth.guard';
 import { IContext } from 'src/commons/type/context';
+import { Repository } from 'typeorm';
 import { CrewBoard } from '../crewBoards/entities/crewBoard.entity';
+import { EmailService } from '../email/email.service';
+import { User } from '../users/entities/user.entity';
 import { CrewUserListService } from './crewUserList.service';
 import { CrewUserList } from './entities/crewUserList.entity';
 
@@ -10,6 +14,13 @@ import { CrewUserList } from './entities/crewUserList.entity';
 export class CrewUserListResolver {
   constructor(
     private readonly crewUserListService: CrewUserListService, //
+    private readonly emailService: EmailService, //
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    @InjectRepository(CrewBoard)
+    private readonly crewBoardRepository: Repository<CrewBoard>,
   ) {}
 
   // 크루 신청 리스트 조회
@@ -93,7 +104,41 @@ export class CrewUserListResolver {
       throw new Error('이미 신청한 게시글입니다.');
     }
 
-    await this.crewUserListService.create({ userId, crewBoardId });
+    const crewUserList = await this.crewUserListService.create({
+      userId,
+      crewBoardId,
+    });
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (user.point < 200) {
+      throw new Error('포인트가 부족합니다! 포인트를 충전해주세요');
+      // console.log('포인트가 부족하지만 개발 중이기에 넘어가준다.');
+    }
+
+    await this.userRepository.update(
+      { id: userId },
+      { point: user.point - 200 },
+      // { point: user.point }, // 개발중으로 아직 포인트 안뻇어감
+    );
+    const crewBoard = await this.crewBoardRepository.findOne({
+      where: { id: crewBoardId },
+      relations: ['user'],
+    });
+    console.log(crewBoard);
+    const nickname = user.nickname;
+    const crewBoardTitle = crewBoard.title;
+    const email = crewBoard.user.email;
+    console.log(email);
+
+    const result = await this.emailService.getApplyTemplate({
+      nickname,
+      crewBoardTitle,
+    });
+    const comment = '새로운 신청자가 있습니다!!';
+    this.emailService.sendTemplateToEmail({ email, result, comment });
+
     return ' 크루 리스트에 추가 되었습니다.';
   }
 
@@ -101,9 +146,20 @@ export class CrewUserListResolver {
   @UseGuards(GqlAuthAccessGuard)
   @Mutation(() => String)
   async deleteCrewUserList(
+    @Context() context: IContext,
     @Args('crewBoardId') crewBoardId: string, //
   ) {
+    const userId = context.req.user.id;
     await this.crewUserListService.delete({ crewBoardId });
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    await this.userRepository.update(
+      { id: userId },
+      { point: user.point + 200 },
+      // { point: user.point }, // 개발중으로 아직 포인트 안뻇어감
+    );
     return '크루 신청이 취소 되었습니다.';
   }
 
@@ -113,10 +169,23 @@ export class CrewUserListResolver {
   async acceptCrew(
     @Args('id') id: string, //
   ) {
-    return this.crewUserListService.update({
+    const crewUserList = await this.crewUserListService.update({
       id,
       status: '수락',
     });
+    const crewUserId = await this.crewUserListService.findOne({ id });
+
+    const email = crewUserId.user.email;
+    const nickname = crewUserId.user.nickname;
+    const crewBoardTitle = crewUserId.crewBoard.title;
+    const result = await this.emailService.getApplyTemplate({
+      nickname,
+      crewBoardTitle,
+    });
+    const comment = '크루에 등록되었습니다.';
+    this.emailService.sendTemplateToEmail({ email, result, comment });
+
+    return crewUserList;
   }
 
   // 크루 거절
@@ -125,10 +194,22 @@ export class CrewUserListResolver {
   async rejectCrew(
     @Args('id') id: string, //
   ) {
-    return this.crewUserListService.update({
+    const crewUserList = await this.crewUserListService.update({
       id,
       status: '거절',
     });
+    const crewUserId = await this.crewUserListService.findOne({ id });
+    const email = crewUserId.user.email;
+    const nickname = crewUserId.user.nickname;
+    const crewBoardTitle = crewUserId.crewBoard.title;
+
+    const result = await this.emailService.getRejectTemplate({
+      nickname,
+      crewBoardTitle,
+    });
+    const comment = '크루에 거절되었습니다.';
+    this.emailService.sendTemplateToEmail({ email, result, comment });
+    return crewUserList;
   }
 
   // 반장이 출석체크 하면 status를 완료로 변경
