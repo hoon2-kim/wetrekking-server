@@ -94,6 +94,7 @@ export class CrewUserListResolver {
     while (list.length > 0) {
       result.push(list.splice(0, 10));
     }
+    return result;
   }
 
   // 크루 리스트 추가
