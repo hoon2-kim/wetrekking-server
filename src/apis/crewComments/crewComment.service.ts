@@ -95,13 +95,11 @@ export class CrewCommentService {
   }
 
   async delete({ commentId, context }) {
-    const user = context.req.user.email;
+    const user = context.req.user.id;
     const comment = await this.find({ commentId });
     const dbUser = comment.user.id;
 
     if (user !== dbUser) throw new ConflictException('아이디가 다릅니다');
-
-    // await this.crewCommentRepository.removeAll;
 
     const result = await this.crewCommentRepository.softDelete({
       id: commentId,
@@ -193,8 +191,6 @@ export class CrewCommentService {
       where: { id: subCommentId },
       relations: ['crewBoard', 'user'],
     });
-
-    console.log(comment);
 
     if (userId !== comment.user.id)
       throw new ConflictException('아이디가 다릅니다');
